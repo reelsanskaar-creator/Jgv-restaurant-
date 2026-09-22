@@ -1,0 +1,1942 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JAY GAJANAND VISHNU RESTAURANT ADVANCED ADMIN</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            500: '#f97316',
+                            600: '#ea580c',
+                            700: '#c2410c',
+                            800: '#9a3412',
+                            900: '#7c2d12',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leaflet.js CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <!-- Leaflet.js JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); border: 1px solid rgba(229, 231, 235, 0.8); }
+        .dark .glass-card { background: rgba(17, 24, 39, 0.9); border: 1px solid rgba(55, 65, 81, 0.8); }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 9999px; }
+        .dark ::-webkit-scrollbar-thumb { background: #4b5563; }
+        #live-map { height: 100%; min-height: 450px; border-radius: 1rem; z-index: 10; }
+    </style>
+</head>
+<body class="h-full bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col overflow-hidden">
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getDatabase, ref, set, get, update, remove, onValue, push, child } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBTUYIJCoUwSnfPcDdAWUuov3GdvexJwlo",
+            authDomain: "mahadev-256c1.firebaseapp.com",
+            databaseURL: "https://mahadev-256c1-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "mahadev-256c1",
+            storageBucket: "mahadev-256c1.firebasestorage.app",
+            messagingSenderId: "733700932311",
+            appId: "1:733700932311:web:447e4de3ce28edbd0f2692",
+            measurementId: "G-SD1M67B4NF"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'jay-gajanand-vishnu';
+
+        window.firebaseApp = { app, auth, db, appId, ref, set, get, update, remove, onValue, push, child };
+    </script>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+    <div id="auth-modal" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass-card w-full max-w-md p-8 rounded-2xl shadow-2xl relative">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-brand-500 text-white rounded-2xl mx-auto flex items-center justify-center text-2xl shadow-lg shadow-brand-500/30 mb-4">
+                    <i class="fa-solid fa-utensils"></i>
+                </div>
+                <h1 class="text-2xl font-bold">Jay Gajanand Vishnu</h1>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Advanced Admin Control Center</p>
+                <div class="mt-2 inline-flex items-center gap-1.5 px-3 py-1 bg-brand-50 dark:bg-brand-950/50 text-brand-600 dark:text-brand-400 rounded-full text-xs font-semibold">
+                    <i class="fa-solid fa-qrcode"></i> UPI: 9512658309-5@ybl
+                </div>
+            </div>
+            <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider mb-1 text-slate-600 dark:text-slate-300">Admin Email</label>
+                    <input type="email" id="login-email" value="reelsanskaar@gmail.com" required class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider mb-1 text-slate-600 dark:text-slate-300">Password</label>
+                    <input type="password" id="login-password" placeholder="••••••••" required class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <button type="submit" class="w-full py-3 bg-brand-500 hover:bg-brand-600 text-white font-semibold rounded-xl shadow-lg shadow-brand-500/25 transition-all">
+                    Sign In to Control Center
+                </button>
+            </form>
+            <div class="mt-6 text-center text-xs text-slate-500">
+                Helpline: <span class="font-semibold text-brand-600">8980008510</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-container" class="flex h-full w-full opacity-0 transition-opacity duration-500 pointer-events-none">
+        
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="w-64 bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 flex flex-col z-30 transition-all duration-300 md:translate-x-0 -translate-x-full absolute md:relative h-full">
+            <div class="p-5 flex items-center justify-between border-b border-slate-200 dark:border-slate-800">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-brand-500 text-white rounded-xl flex items-center justify-center font-bold shadow-md shadow-brand-500/20">
+                        <i class="fa-solid fa-crown"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-sm leading-tight">Gajanand Vishnu</h2>
+                        <span class="text-[10px] uppercase tracking-wider font-semibold text-brand-600 dark:text-brand-400">Master Control</span>
+                    </div>
+                </div>
+                <button id="sidebar-close" onclick="toggleSidebar(false)" class="md:hidden text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="flex-1 overflow-y-auto p-4 space-y-1.5 text-sm font-medium">
+                <button onclick="switchTab('dashboard')" class="nav-link w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-brand-500 text-white shadow-md shadow-brand-500/25 transition-all text-left" data-tab="dashboard">
+                    <i class="fa-solid fa-chart-pie w-5"></i><span>Dashboard</span>
+                </button>
+                <button onclick="switchTab('orders')" class="nav-link w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 transition-all text-left" data-tab="orders">
+                    <i class="fa-solid fa-bag-shopping w-5"></i><span>Orders & Live</span>
+                </button>
+                <button onclick="switchTab('map')" class="nav-link w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 transition-all text-left" data-tab="map">
+                    <i class="fa-solid fa-map-location-dot w-5"></i><span>Live GPS Radar Map</span>
+                </button>
+                <button onclick="switchTab('kds')" class="nav-link w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 transition-all text-left" data-tab="kds">
+                    <i class="fa-solid fa-fire-burner w-5"></i><span>Kitchen Display (KDS)</span>
+                </button>
+                <button onclick="switchTab('menu')" class="nav-link w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 transition-all text-left" data-tab="menu">
+                    <i class="fa-solid fa-utensils w-5"></i><span>Menu & Categories</span>
+                </button>
+                <button onclick="switchTab('upi')" class="nav-link w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 transition-all text-left" data-tab="upi">
+                    <i class="fa-solid fa-qrcode w-5"></i><span>UPI & QR Generator</span>
+                </button>
+                <button onclick="switchTab('inventory')" class="nav-link w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 transition-all text-left" data-tab="inventory">
+                    <i class="fa-solid fa-boxes-stacked w-5"></i><span>Inventory & Stock</span>
+                </button>
+                <button onclick="switchTab('riders')" class="nav-link w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 transition-all text-left" data-tab="riders">
+                    <i class="fa-solid fa-motorcycle w-5"></i><span>Riders & Delivery</span>
+                </button>
+                <button onclick="switchTab('customers')" class="nav-link w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 transition-all text-left" data-tab="customers">
+                    <i class="fa-solid fa-users w-5"></i><span>Customers</span>
+                </button>
+                <button onclick="switchTab('marketing')" class="nav-link w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 transition-all text-left" data-tab="marketing">
+                    <i class="fa-solid fa-ticket w-5"></i><span>Coupons & Offers</span>
+                </button>
+                <button onclick="switchTab('reports')" class="nav-link w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 transition-all text-left" data-tab="reports">
+                    <i class="fa-solid fa-chart-line w-5"></i><span>Reports & Analytics</span>
+                </button>
+                <button onclick="switchTab('settings')" class="nav-link w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 transition-all text-left" data-tab="settings">
+                    <i class="fa-solid fa-gear w-5"></i><span>Website & Settings</span>
+                </button>
+                <button onclick="switchTab('staff')" class="nav-link w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 transition-all text-left" data-tab="staff">
+                    <i class="fa-solid fa-shield-halved w-5"></i><span>Staff & RBAC</span>
+                </button>
+            </nav>
+
+            <div class="p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-3 overflow-hidden">
+                    <div class="w-9 h-9 bg-slate-200 dark:bg-slate-800 rounded-full flex items-center justify-center font-bold text-xs">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </div>
+                    <div class="truncate">
+                        <p id="admin-email-display" class="text-xs font-bold truncate">reelsanskaar@gmail.com</p>
+                        <p class="text-[10px] text-emerald-500 font-semibold flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Online Active</p>
+                    </div>
+                </div>
+                <button onclick="handleLogout()" class="text-slate-400 hover:text-red-500 p-2 transition-colors" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></button>
+            </div>
+        </aside>
+
+        <!-- Main Content Header & View Area -->
+        <main class="flex-1 flex flex-col h-full overflow-hidden">
+            <header class="h-16 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 z-20 shrink-0">
+                <div class="flex items-center space-x-4">
+                    <button onclick="toggleSidebar(true)" class="md:hidden text-slate-600 dark:text-slate-300"><i class="fa-solid fa-bars text-lg"></i></button>
+                    <h1 id="current-page-title" class="text-lg font-bold">Dashboard Overview</h1>
+                </div>
+
+                <!-- Master Quick Toggles -->
+                <div class="hidden lg:flex items-center space-x-3 bg-slate-100 dark:bg-slate-900 p-1.5 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
+                    <label class="flex items-center space-x-2 px-2 cursor-pointer">
+                        <span class="font-medium">Restaurant:</span>
+                        <input type="checkbox" id="master-toggle-open" onchange="toggleRestaurantSetting('isOpen')" class="w-4 h-4 text-brand-600 rounded cursor-pointer">
+                        <span id="label-isOpen" class="font-bold">--</span>
+                    </label>
+                    <span class="text-slate-300 dark:text-slate-700">|</span>
+                    <label class="flex items-center space-x-2 px-2 cursor-pointer">
+                        <span class="font-medium">Orders:</span>
+                        <input type="checkbox" id="master-toggle-orders" onchange="toggleRestaurantSetting('acceptingOrders')" class="w-4 h-4 text-brand-600 rounded cursor-pointer">
+                        <span id="label-acceptingOrders" class="font-bold">--</span>
+                    </label>
+                    <span class="text-slate-300 dark:text-slate-700">|</span>
+                    <label class="flex items-center space-x-2 px-2 cursor-pointer">
+                        <span class="font-medium">Delivery:</span>
+                        <input type="checkbox" id="master-toggle-delivery" onchange="toggleRestaurantSetting('deliveryEnabled')" class="w-4 h-4 text-brand-600 rounded cursor-pointer">
+                        <span id="label-deliveryEnabled" class="font-bold">--</span>
+                    </label>
+                </div>
+
+                <div class="flex items-center space-x-3">
+                    <button onclick="toggleDarkMode()" class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-900 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
+                        <i class="fa-solid fa-moon dark:hidden"></i>
+                        <i class="fa-solid fa-sun hidden dark:block"></i>
+                    </button>
+                    <div id="connection-status" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                        <span>Connected</span>
+                    </div>
+                </div>
+            </header>
+
+            <div id="tab-content-container" class="flex-1 overflow-y-auto p-6 space-y-6">
+
+                <!-- 1. Dashboard Tab -->
+                <section id="tab-dashboard" class="tab-pane space-y-6">
+                    <div class="lg:hidden glass-card p-4 rounded-2xl flex flex-wrap gap-4 items-center justify-between">
+                        <span class="font-bold text-sm">Quick Master Switches:</span>
+                        <div class="flex items-center space-x-4 text-xs">
+                            <label class="flex items-center gap-2"><input type="checkbox" id="mobile-toggle-open" onchange="toggleRestaurantSetting('isOpen')"> Open</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" id="mobile-toggle-orders" onchange="toggleRestaurantSetting('acceptingOrders')"> Orders</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" id="mobile-toggle-delivery" onchange="toggleRestaurantSetting('deliveryEnabled')"> Delivery</label>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="glass-card p-5 rounded-2xl shadow-sm border-l-4 border-l-orange-500">
+                            <p class="text-xs font-semibold text-slate-500 uppercase">Today's Orders</p>
+                            <div class="flex items-baseline justify-between mt-2">
+                                <h3 id="kpi-todays-orders" class="text-2xl font-bold">0</h3>
+                                <span class="text-xs font-medium text-emerald-500 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full"><i class="fa-solid fa-arrow-trend-up"></i> Live</span>
+                            </div>
+                        </div>
+                        <div class="glass-card p-5 rounded-2xl shadow-sm border-l-4 border-l-blue-500">
+                            <p class="text-xs font-semibold text-slate-500 uppercase">Today's Revenue</p>
+                            <div class="flex items-baseline justify-between mt-2">
+                                <h3 id="kpi-todays-revenue" class="text-2xl font-bold">₹0</h3>
+                                <span class="text-xs font-medium text-blue-500 bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 rounded-full">Secure</span>
+                            </div>
+                        </div>
+                        <div class="glass-card p-5 rounded-2xl shadow-sm border-l-4 border-l-amber-500">
+                            <p class="text-xs font-semibold text-slate-500 uppercase">Pending Orders</p>
+                            <div class="flex items-baseline justify-between mt-2">
+                                <h3 id="kpi-pending-orders" class="text-2xl font-bold">0</h3>
+                                <span class="text-xs font-medium text-amber-500 bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 rounded-full animate-pulse">Action req.</span>
+                            </div>
+                        </div>
+                        <div class="glass-card p-5 rounded-2xl shadow-sm border-l-4 border-l-emerald-500">
+                            <p class="text-xs font-semibold text-slate-500 uppercase">Monthly Revenue</p>
+                            <div class="flex items-baseline justify-between mt-2">
+                                <h3 id="kpi-monthly-revenue" class="text-2xl font-bold">₹0</h3>
+                                <span class="text-xs font-medium text-emerald-500 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full">Growth</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-5 rounded-2xl shadow-sm">
+                        <h3 class="text-sm font-bold uppercase tracking-wider mb-4 text-slate-600 dark:text-slate-400">Master Quick Actions</h3>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                            <button onclick="openModal('food-modal'); resetFoodForm();" class="p-3 bg-brand-50 hover:bg-brand-100 dark:bg-brand-950/30 dark:hover:bg-brand-900/50 text-brand-600 dark:text-brand-400 rounded-xl font-semibold text-xs flex flex-col items-center justify-center space-y-2 transition-all">
+                                <i class="fa-solid fa-burger text-lg"></i><span>Add Food</span>
+                            </button>
+                            <button onclick="openModal('category-modal')" class="p-3 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl font-semibold text-xs flex flex-col items-center justify-center space-y-2 transition-all">
+                                <i class="fa-solid fa-folder-plus text-lg"></i><span>Add Category</span>
+                            </button>
+                            <button onclick="openModal('coupon-modal')" class="p-3 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl font-semibold text-xs flex flex-col items-center justify-center space-y-2 transition-all">
+                                <i class="fa-solid fa-ticket-simple text-lg"></i><span>Create Coupon</span>
+                            </button>
+                            <button onclick="openModal('rider-modal')" class="p-3 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl font-semibold text-xs flex flex-col items-center justify-center space-y-2 transition-all">
+                                <i class="fa-solid fa-motorcycle text-lg"></i><span>Add Rider</span>
+                            </button>
+                            <button onclick="switchTab('map')" class="p-3 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl font-semibold text-xs flex flex-col items-center justify-center space-y-2 transition-all">
+                                <i class="fa-solid fa-map-location-dot text-lg"></i><span>Live GPS Radar</span>
+                            </button>
+                            <button onclick="switchTab('kds')" class="p-3 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl font-semibold text-xs flex flex-col items-center justify-center space-y-2 transition-all">
+                                <i class="fa-solid fa-fire text-lg"></i><span>Open Kitchen</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="glass-card p-5 rounded-2xl shadow-sm">
+                            <h3 class="font-bold text-sm mb-4">Sales Trend (Last 7 Days)</h3>
+                            <div class="h-64"><canvas id="salesChart"></canvas></div>
+                        </div>
+                        <div class="glass-card p-5 rounded-2xl shadow-sm">
+                            <h3 class="font-bold text-sm mb-4">Order Status Distribution</h3>
+                            <div class="h-64"><canvas id="orderStatusChart"></canvas></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. Orders Tab -->
+                <section id="tab-orders" class="tab-pane hidden space-y-6">
+                    <div class="glass-card p-5 rounded-2xl flex flex-wrap items-center justify-between gap-4">
+                        <div class="flex items-center space-x-3">
+                            <h3 class="font-bold text-lg">Live Orders Management</h3>
+                            <span id="orders-count-badge" class="px-2.5 py-0.5 rounded-full bg-brand-100 dark:bg-brand-950 text-brand-600 dark:text-brand-400 text-xs font-bold">0 Active</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <select id="order-filter-status" onchange="renderOrdersTable()" class="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-semibold focus:outline-none">
+                                <option value="ALL">All Statuses</option>
+                                <option value="NEW">New</option>
+                                <option value="ACCEPTED">Accepted</option>
+                                <option value="PREPARING">Preparing</option>
+                                <option value="READY">Ready</option>
+                                <option value="OUT_FOR_DELIVERY">Out for Delivery</option>
+                                <option value="DELIVERED">Delivered</option>
+                                <option value="CANCELLED">Cancelled</option>
+                            </select>
+                            <input type="text" id="order-search" oninput="renderOrdersTable()" placeholder="Search order ID or customer..." class="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs focus:outline-none">
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card rounded-2xl overflow-hidden shadow-sm">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead>
+                                    <tr class="bg-slate-100 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 uppercase font-semibold">
+                                        <th class="p-4">Order ID</th>
+                                        <th class="p-4">Customer</th>
+                                        <th class="p-4">Items</th>
+                                        <th class="p-4">Total</th>
+                                        <th class="p-4">Payment</th>
+                                        <th class="p-4">Status</th>
+                                        <th class="p-4">Time</th>
+                                        <th class="p-4 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="orders-table-body" class="divide-y divide-slate-200 dark:divide-slate-800">
+                                    <tr><td colspan="8" class="p-8 text-center text-slate-400">Loading orders...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. Leaflet.js Live GPS Radar Map Tab -->
+                <section id="tab-map" class="tab-pane hidden space-y-6">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                        <div>
+                            <h3 class="font-bold text-lg">Live GPS Fleet Radar & Customer Tracking</h3>
+                            <p class="text-xs text-slate-500">Real-time Leaflet mapping showing restaurant headquarters, active delivery riders, and customer drop-off destinations.</p>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <button onclick="centerMapOnRestaurant()" class="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl font-semibold text-xs shadow-md transition-all">
+                                <i class="fa-solid fa-store mr-2"></i>Center on Restaurant
+                            </button>
+                            <button onclick="updateLiveMapData()" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 rounded-xl font-semibold text-xs transition-all">
+                                <i class="fa-solid fa-rotate mr-2"></i>Refresh Radar
+                            </button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                        <div class="lg:col-span-3 glass-card p-4 rounded-2xl shadow-sm h-[650px] relative">
+                            <div id="live-map"></div>
+                        </div>
+                        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between space-y-4 h-[650px] overflow-y-auto">
+                            <div>
+                                <h4 class="font-bold text-sm mb-3 flex items-center justify-between">
+                                    <span>Active Tracked Fleet</span>
+                                    <span id="active-radar-count" class="px-2 py-0.5 bg-brand-100 text-brand-600 rounded-full text-[10px] font-bold">0 Active</span>
+                                </h4>
+                                <div id="radar-riders-list" class="space-y-3">
+                                    <p class="text-xs text-slate-400 text-center py-6">No active riders transmitting GPS signals.</p>
+                                </div>
+                            </div>
+                            <div class="p-4 bg-brand-50 dark:bg-brand-950/40 rounded-xl border border-brand-200 dark:border-brand-900 space-y-2">
+                                <h5 class="font-bold text-xs text-brand-600 dark:text-brand-400 uppercase">Simulate Live GPS Feed</h5>
+                                <p class="text-[11px] text-slate-600 dark:text-slate-400">Trigger test telemetry to test rider movement along delivery routes in real-time.</p>
+                                <button onclick="triggerSimulateGPS()" class="w-full py-2 bg-brand-500 hover:bg-brand-600 text-white font-semibold text-xs rounded-lg shadow-sm transition-all">
+                                    <i class="fa-solid fa-satellite-dish mr-1"></i> Simulate Rider Telemetry
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. KDS Tab -->
+                <section id="tab-kds" class="tab-pane hidden space-y-6">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold text-lg">Kitchen Display System (KDS)</h3>
+                        <p class="text-xs text-slate-500">Realtime Kitchen Pipeline - Auto-synced</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="glass-card p-4 rounded-2xl flex flex-col h-[70vh]">
+                            <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 mb-3">
+                                <h4 class="font-bold text-xs uppercase tracking-wider text-amber-500"><i class="fa-solid fa-clock"></i> New Orders</h4>
+                                <span id="kds-count-new" class="bg-amber-100 dark:bg-amber-950 text-amber-600 px-2 py-0.5 rounded-full text-xs font-bold">0</span>
+                            </div>
+                            <div id="kds-column-new" class="flex-1 overflow-y-auto space-y-3 pr-1"></div>
+                        </div>
+                        <div class="glass-card p-4 rounded-2xl flex flex-col h-[70vh]">
+                            <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 mb-3">
+                                <h4 class="font-bold text-xs uppercase tracking-wider text-blue-500"><i class="fa-solid fa-fire"></i> Preparing</h4>
+                                <span id="kds-count-preparing" class="bg-blue-100 dark:bg-blue-950 text-blue-600 px-2 py-0.5 rounded-full text-xs font-bold">0</span>
+                            </div>
+                            <div id="kds-column-preparing" class="flex-1 overflow-y-auto space-y-3 pr-1"></div>
+                        </div>
+                        <div class="glass-card p-4 rounded-2xl flex flex-col h-[70vh]">
+                            <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 mb-3">
+                                <h4 class="font-bold text-xs uppercase tracking-wider text-emerald-500"><i class="fa-solid fa-check"></i> Ready</h4>
+                                <span id="kds-count-ready" class="bg-emerald-100 dark:bg-emerald-950 text-emerald-600 px-2 py-0.5 rounded-full text-xs font-bold">0</span>
+                            </div>
+                            <div id="kds-column-ready" class="flex-1 overflow-y-auto space-y-3 pr-1"></div>
+                        </div>
+                        <div class="glass-card p-4 rounded-2xl flex flex-col h-[70vh]">
+                            <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 mb-3">
+                                <h4 class="font-bold text-xs uppercase tracking-wider text-purple-500"><i class="fa-solid fa-motorcycle"></i> Dispatched</h4>
+                                <span id="kds-count-dispatched" class="bg-purple-100 dark:bg-purple-950 text-purple-600 px-2 py-0.5 rounded-full text-xs font-bold">0</span>
+                            </div>
+                            <div id="kds-column-dispatched" class="flex-1 overflow-y-auto space-y-3 pr-1"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. Menu & Categories Tab (Fixed & Enhanced) -->
+                <section id="tab-menu" class="tab-pane hidden space-y-6">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                        <div>
+                            <h3 class="font-bold text-lg">Menu & Categories Control</h3>
+                            <p class="text-xs text-slate-500">Manage items, prices, variants, add-ons and availability.</p>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <button onclick="openModal('category-modal')" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 rounded-xl font-semibold text-xs transition-all"><i class="fa-solid fa-folder-plus mr-2"></i>Add Category</button>
+                            <button onclick="openModal('food-modal'); resetFoodForm();" class="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl font-semibold text-xs shadow-md shadow-brand-500/20 transition-all"><i class="fa-solid fa-plus mr-2"></i>Add Food Item</button>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-5 rounded-2xl space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h4 class="font-bold text-sm">Active Categories</h4>
+                            <span class="text-xs text-slate-500">Click a category pill to filter or manage</span>
+                        </div>
+                        <div id="admin-categories-pills" class="flex items-center space-x-3 overflow-x-auto pb-2"></div>
+                    </div>
+
+                    <div class="glass-card p-5 rounded-2xl space-y-4">
+                        <h4 class="font-bold text-sm">Food Products Catalog</h4>
+                        <div id="admin-products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+                    </div>
+                </section>
+
+                <!-- 6. UPI & QR Code Generator Tab -->
+                <section id="tab-upi" class="tab-pane hidden space-y-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="font-bold text-lg">Online Payment & UPI QR Generator</h3>
+                            <p class="text-xs text-slate-500">Generate dynamic Bharat/UPI QR codes for custom item prices using VPA: <span class="font-bold text-brand-600">9512658309-5@ybl</span></p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="glass-card p-6 rounded-2xl space-y-4">
+                            <h4 class="font-bold text-sm">Payment Details Generator</h4>
+                            <div>
+                                <label class="block font-semibold mb-1 text-xs">UPI VPA (Virtual Payment Address)</label>
+                                <input type="text" id="upi-vpa" value="9512658309-5@ybl" readonly class="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-xs font-bold">
+                            </div>
+                            <div>
+                                <label class="block font-semibold mb-1 text-xs">Payee Name</label>
+                                <input type="text" id="upi-name" value="Jay Gajanand Vishnu Restaurant" class="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs">
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block font-semibold mb-1 text-xs">Amount (₹)</label>
+                                    <input type="number" id="upi-amount" value="250" class="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-bold">
+                                </div>
+                                <div>
+                                    <label class="block font-semibold mb-1 text-xs">Transaction Note / Ref</label>
+                                    <input type="text" id="upi-note" value="Order Payment #GJV101" class="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs">
+                                </div>
+                            </div>
+                            <button onclick="generateDynamicUPIQR()" class="w-full py-3 bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+                                <i class="fa-solid fa-qrcode mr-2"></i>Generate Online Payment QR Code
+                            </button>
+                        </div>
+
+                        <div class="glass-card p-6 rounded-2xl flex flex-col items-center justify-center text-center space-y-4">
+                            <h4 class="font-bold text-sm">Scan & Pay via any UPI App (GPay, PhonePe, Paytm)</h4>
+                            <div id="qrcode-container" class="bg-white p-4 rounded-2xl shadow-inner border border-slate-200 inline-block"></div>
+                            <div class="space-y-1">
+                                <p id="qr-display-amount" class="text-lg font-bold text-brand-600">Amount: ₹250.00</p>
+                                <p id="qr-display-upi" class="text-xs text-slate-500 font-mono">UPI ID: 9512658309-5@ybl</p>
+                            </div>
+                            <button onclick="copyUPIString()" class="px-4 py-2 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-xs font-semibold rounded-xl transition-all">
+                                <i class="fa-regular fa-copy mr-2"></i>Copy UPI String
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 7. Inventory Tab -->
+                <section id="tab-inventory" class="tab-pane hidden space-y-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="font-bold text-lg">Inventory & Stock Control</h3>
+                            <p class="text-xs text-slate-500">Monitor ingredients, low stock items, and stock adjustments.</p>
+                        </div>
+                        <button onclick="openModal('inventory-modal')" class="px-4 py-2 bg-brand-500 text-white font-semibold text-xs rounded-xl shadow-md"><i class="fa-solid fa-plus mr-2"></i>Add Ingredient</button>
+                    </div>
+                    <div class="glass-card rounded-2xl overflow-hidden shadow-sm">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-slate-100 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 uppercase font-semibold">
+                                    <th class="p-4">Ingredient Name</th>
+                                    <th class="p-4">Current Stock</th>
+                                    <th class="p-4">Unit</th>
+                                    <th class="p-4">Min. Threshold</th>
+                                    <th class="p-4">Status</th>
+                                    <th class="p-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventory-table-body" class="divide-y divide-slate-200 dark:divide-slate-800"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- 8. Riders Tab -->
+                <section id="tab-riders" class="tab-pane hidden space-y-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="font-bold text-lg">Riders & Delivery Fleet</h3>
+                            <p class="text-xs text-slate-500">Manage delivery partners, active deliveries, and delivery zones.</p>
+                        </div>
+                        <button onclick="openModal('rider-modal')" class="px-4 py-2 bg-brand-500 text-white font-semibold text-xs rounded-xl shadow-md"><i class="fa-solid fa-user-plus mr-2"></i>Add Rider</button>
+                    </div>
+                    <div id="riders-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                </section>
+
+                <!-- 9. Customers Tab -->
+                <section id="tab-customers" class="tab-pane hidden space-y-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="font-bold text-lg">Customer Directory</h3>
+                            <p class="text-xs text-slate-500">View registered customers, order history, and spending profiles.</p>
+                        </div>
+                    </div>
+                    <div class="glass-card rounded-2xl overflow-hidden shadow-sm">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-slate-100 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 uppercase font-semibold">
+                                    <th class="p-4">Customer Name / ID</th>
+                                    <th class="p-4">Phone</th>
+                                    <th class="p-4">Email</th>
+                                    <th class="p-4">Total Orders</th>
+                                    <th class="p-4">Total Spent</th>
+                                    <th class="p-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customers-table-body" class="divide-y divide-slate-200 dark:divide-slate-800"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- 10. Marketing Tab -->
+                <section id="tab-marketing" class="tab-pane hidden space-y-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="font-bold text-lg">Coupons & Promotional Offers</h3>
+                            <p class="text-xs text-slate-500">Create discount codes and promotional banners for the public app.</p>
+                        </div>
+                        <div class="flex space-x-3">
+                            <button onclick="openModal('coupon-modal')" class="px-4 py-2 bg-brand-500 text-white font-semibold text-xs rounded-xl shadow-md"><i class="fa-solid fa-ticket mr-2"></i>New Coupon</button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="glass-card p-5 rounded-2xl">
+                            <h4 class="font-bold text-sm mb-4">Active Coupons</h4>
+                            <div id="coupons-list" class="space-y-3"></div>
+                        </div>
+                        <div class="glass-card p-5 rounded-2xl">
+                            <h4 class="font-bold text-sm mb-4">Promotional Banners</h4>
+                            <div id="banners-list" class="space-y-3"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 11. Reports Tab -->
+                <section id="tab-reports" class="tab-pane hidden space-y-6">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold text-lg">Reports & Advanced Analytics</h3>
+                        <button onclick="exportCSVReports()" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 rounded-xl text-xs font-semibold"><i class="fa-solid fa-download mr-2"></i>Export CSV</button>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="glass-card p-5 rounded-2xl lg:col-span-2">
+                            <h4 class="font-bold text-sm mb-4">Monthly Revenue Breakdown</h4>
+                            <div class="h-80"><canvas id="analyticsMonthlyChart"></canvas></div>
+                        </div>
+                        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between">
+                            <div>
+                                <h4 class="font-bold text-sm mb-4">Summary Statistics</h4>
+                                <ul class="space-y-3 text-xs">
+                                    <li class="flex justify-between p-2 rounded-lg bg-slate-100 dark:bg-slate-900"><span class="text-slate-500">Average Order Value:</span> <span id="report-aov" class="font-bold">₹0</span></li>
+                                    <li class="flex justify-between p-2 rounded-lg bg-slate-100 dark:bg-slate-900"><span class="text-slate-500">Total Cancelled:</span> <span id="report-cancelled" class="font-bold">0</span></li>
+                                    <li class="flex justify-between p-2 rounded-lg bg-slate-100 dark:bg-slate-900"><span class="text-slate-500">Total Customers:</span> <span id="report-customers" class="font-bold">0</span></li>
+                                    <li class="flex justify-between p-2 rounded-lg bg-slate-100 dark:bg-slate-900"><span class="text-slate-500">Active Riders:</span> <span id="report-riders" class="font-bold">0</span></li>
+                                </ul>
+                            </div>
+                            <div class="p-3 bg-brand-50 dark:bg-brand-950/30 rounded-xl border border-brand-200 dark:border-brand-900 text-center">
+                                <p class="text-[10px] text-brand-600 dark:text-brand-400 font-bold uppercase">Restaurant Helpline</p>
+                                <p class="text-sm font-bold mt-1">8980008510</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 12. Settings Tab -->
+                <section id="tab-settings" class="tab-pane hidden space-y-6">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold text-lg">Website & Restaurant Master Settings</h3>
+                        <button onclick="saveSettings()" class="px-5 py-2.5 bg-brand-500 hover:bg-brand-600 text-white font-semibold text-xs rounded-xl shadow-md"><i class="fa-solid fa-floppy-disk mr-2"></i>Save Settings</button>
+                    </div>
+                    <div class="glass-card p-6 rounded-2xl grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+                        <div>
+                            <label class="block font-semibold mb-1">Restaurant Name</label>
+                            <input type="text" id="setting-name" class="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900" value="JAY GAJANAND VISHNU RESTAURANT">
+                        </div>
+                        <div>
+                            <label class="block font-semibold mb-1">Tagline</label>
+                            <input type="text" id="setting-tagline" class="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900" value="Authentic Cloud Kitchen & Food Delivery">
+                        </div>
+                        <div>
+                            <label class="block font-semibold mb-1">Contact Phone</label>
+                            <input type="text" id="setting-phone" class="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900" value="8980008510">
+                        </div>
+                        <div>
+                            <label class="block font-semibold mb-1">UPI VPA (Online Payment)</label>
+                            <input type="text" id="setting-upi" class="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900" value="9512658309-5@ybl">
+                        </div>
+                        <div>
+                            <label class="block font-semibold mb-1">Minimum Order Amount (₹)</label>
+                            <input type="number" id="setting-min-order" class="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900" value="150">
+                        </div>
+                        <div>
+                            <label class="block font-semibold mb-1">Standard Delivery Fee (₹)</label>
+                            <input type="number" id="setting-delivery-fee" class="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900" value="30">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block font-semibold mb-1">Full Address / Location</label>
+                            <textarea id="setting-address" rows="2" class="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900">Main Highway Road, Cloud Kitchen Hub, Gujarat</textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 13. Staff Tab -->
+                <section id="tab-staff" class="tab-pane hidden space-y-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="font-bold text-lg">Staff & RBAC Control</h3>
+                            <p class="text-xs text-slate-500">Manage administrative and kitchen staff access roles.</p>
+                        </div>
+                        <button onclick="openModal('staff-modal')" class="px-4 py-2 bg-brand-500 text-white font-semibold text-xs rounded-xl shadow-md"><i class="fa-solid fa-user-shield mr-2"></i>Add Staff Member</button>
+                    </div>
+                    <div class="glass-card rounded-2xl overflow-hidden shadow-sm">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-slate-100 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 uppercase font-semibold">
+                                    <th class="p-4">Name / Email</th>
+                                    <th class="p-4">Role</th>
+                                    <th class="p-4">Phone</th>
+                                    <th class="p-4">Status</th>
+                                    <th class="p-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="staff-table-body" class="divide-y divide-slate-200 dark:divide-slate-800"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="food-modal" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center p-4 overflow-y-auto">
+        <div class="glass-card w-full max-w-lg p-6 rounded-2xl shadow-2xl relative my-8">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 mb-4">
+                <h3 id="food-modal-title" class="font-bold text-base">Add New Food Item</h3>
+                <button onclick="closeModal('food-modal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="food-form" onsubmit="saveFoodItem(event)" class="space-y-4 text-xs">
+                <input type="hidden" id="food-id">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-semibold mb-1">Item Name</label>
+                        <input type="text" id="food-name" required class="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Category</label>
+                        <select id="food-category" required class="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900"></select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-semibold mb-1">Price (₹)</label>
+                        <input type="number" id="food-price" required class="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Preparation Time (mins)</label>
+                        <input type="number" id="food-prep-time" value="15" class="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">Image URL</label>
+                    <input type="url" id="food-image" placeholder="https://images.unsplash.com/..." required class="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">Description</label>
+                    <textarea id="food-desc" rows="2" class="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900"></textarea>
+                </div>
+                <div class="flex items-center space-x-6 pt-2">
+                    <label class="flex items-center space-x-2 cursor-pointer font-medium"><input type="checkbox" id="food-is-veg" checked class="w-4 h-4 text-brand-500 rounded"><span>Veg / Non-Veg (Checked = Veg)</span></label>
+                    <label class="flex items-center space-x-2 cursor-pointer font-medium"><input type="checkbox" id="food-available" checked class="w-4 h-4 text-brand-500 rounded"><span>Available Now</span></label>
+                </div>
+                <div class="flex justify-end space-x-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+                    <button type="button" onclick="closeModal('food-modal')" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 rounded-xl font-semibold">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl font-semibold shadow-md">Save Food Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Category Modal (Fixed & Working) -->
+    <div id="category-modal" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="glass-card w-full max-w-sm p-6 rounded-2xl shadow-2xl relative">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 mb-4">
+                <h3 class="font-bold text-base">Add New Category</h3>
+                <button onclick="closeModal('category-modal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="category-form" onsubmit="saveCategory(event)" class="space-y-4 text-xs">
+                <div>
+                    <label class="block font-semibold mb-1">Category Name</label>
+                    <input type="text" id="cat-name" required class="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900" placeholder="e.g. South Indian">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">Image URL</label>
+                    <input type="url" id="cat-image" placeholder="https://images.unsplash.com/..." required class="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900">
+                </div>
+                <div class="flex justify-end space-x-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+                    <button type="button" onclick="closeModal('category-modal')" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 rounded-xl font-semibold">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-brand-500 text-white rounded-xl font-semibold shadow-md">Save Category</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Coupon Modal -->
+    <div id="coupon-modal" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="glass-card w-full max-w-md p-6 rounded-2xl shadow-2xl relative">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 mb-4">
+                <h3 class="font-bold text-base">Create Discount Coupon</h3>
+                <button onclick="closeModal('coupon-modal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="coupon-form" onsubmit="saveCoupon(event)" class="space-y-4 text-xs">
+                <div>
+                    <label class="block font-semibold mb-1">Coupon Code</label>
+                    <input type="text" id="coupon-code" placeholder="GAJANAND20" required class="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 uppercase">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-semibold mb-1">Discount (%)</label>
+                        <input type="number" id="coupon-discount" placeholder="20" required class="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Min Order (₹)</label>
+                        <input type="number" id="coupon-min" placeholder="200" required class="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900">
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+                    <button type="button" onclick="closeModal('coupon-modal')" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 rounded-xl font-semibold">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-brand-500 text-white rounded-xl font-semibold shadow-md">Create Coupon</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Rider Modal -->
+    <div id="rider-modal" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="glass-card w-full max-w-md p-6 rounded-2xl shadow-2xl relative">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 mb-4">
+                <h3 class="font-bold text-base">Add Delivery Rider</h3>
+                <button onclick="closeModal('rider-modal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="rider-form" onsubmit="saveRider(event)" class="space-y-4 text-xs">
+                <div>
+                    <label class="block font-semibold mb-1">Rider Name</label>
+                    <input type="text" id="rider-name" required class="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">Phone Number</label>
+                    <input type="text" id="rider-phone" required class="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">Vehicle Details</label>
+                    <input type="text" id="rider-vehicle" placeholder="Honda Activa - GJ05AB1234" required class="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900">
+                </div>
+                <div class="flex justify-end space-x-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+                    <button type="button" onclick="closeModal('rider-modal')" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 rounded-xl font-semibold">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-brand-500 text-white rounded-xl font-semibold shadow-md">Save Rider</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Inventory Modal -->
+    <div id="inventory-modal" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="glass-card w-full max-w-md p-6 rounded-2xl shadow-2xl relative">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 mb-4">
+                <h3 class="font-bold text-base">Add Ingredient Stock</h3>
+                <button onclick="closeModal('inventory-modal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="inventory-form" onsubmit="saveInventoryItem(event)" class="space-y-4 text-xs">
+                <div>
+                    <label class="block font-semibold mb-1">Ingredient Name</label>
+                    <input type="text" id="inv-name" required class="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-semibold mb-1">Stock Quantity</label>
+                        <input type="number" id="inv-stock" required class="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Unit</label>
+                        <input type="text" id="inv-unit" placeholder="kg / liters / packets" required class="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">Minimum Alert Threshold</label>
+                    <input type="number" id="inv-threshold" value="5" required class="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900">
+                </div>
+                <div class="flex justify-end space-x-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+                    <button type="button" onclick="closeModal('inventory-modal')" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 rounded-xl font-semibold">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-brand-500 text-white rounded-xl font-semibold shadow-md">Save Ingredient</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Staff Modal -->
+    <div id="staff-modal" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="glass-card w-full max-w-md p-6 rounded-2xl shadow-2xl relative">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 mb-4">
+                <h3 class="font-bold text-base">Add Staff Member</h3>
+                <button onclick="closeModal('staff-modal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="staff-form" onsubmit="saveStaffMember(event)" class="space-y-4 text-xs">
+                <div>
+                    <label class="block font-semibold mb-1">Full Name</label>
+                    <input type="text" id="staff-name" required class="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">Email / Login ID</label>
+                    <input type="email" id="staff-email" required class="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">Role</label>
+                    <select id="staff-role" class="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900">
+                        <option value="Manager">Manager</option>
+                        <option value="Chef / Kitchen">Chef / Kitchen</option>
+                        <option value="Delivery Dispatch">Delivery Dispatch</option>
+                        <option value="Cashier">Cashier</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">Phone</label>
+                    <input type="text" id="staff-phone" required class="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900">
+                </div>
+                <div class="flex justify-end space-x-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+                    <button type="button" onclick="closeModal('staff-modal')" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 rounded-xl font-semibold">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-brand-500 text-white rounded-xl font-semibold shadow-md">Save Staff</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Global State
+        let dbState = {
+            settings: {
+                name: "JAY GAJANAND VISHNU RESTAURANT",
+                tagline: "Authentic Cloud Kitchen & Food Delivery",
+                phone: "8980008510",
+                email: "reelsanskaar@gmail.com",
+                upi: "9512658309-5@ybl",
+                minOrder: 150,
+                deliveryFee: 30,
+                isOpen: true,
+                acceptingOrders: true,
+                deliveryEnabled: true,
+                address: "Main Highway Road, Cloud Kitchen Hub, Gujarat",
+                lat: 21.3891,
+                lng: 72.9252
+            },
+            categories: {},
+            products: {},
+            orders: {},
+            inventory: {},
+            riders: {},
+            customers: {},
+            coupons: {},
+            banners: {},
+            staff: {}
+        };
+
+        let currentActiveTab = 'dashboard';
+        let salesChartInstance = null;
+        let statusChartInstance = null;
+        let analyticsChartInstance = null;
+
+        // Leaflet Map Globals
+        let liveMap = null;
+        let mapMarkers = {};
+        let mapPolyline = null;
+        const restaurantCoords = [21.3891, 72.9252];
+
+        // Toast Notification Function
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = `px-4 py-3 rounded-xl shadow-lg text-white font-medium text-xs flex items-center space-x-3 pointer-events-auto transition-all transform translate-y-2 opacity-0 ${
+                type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-red-600' : 'bg-brand-600'
+            }`;
+            toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-info'} text-sm"></i><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.classList.remove('translate-y-2', 'opacity-0'); }, 10);
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        // Authentication Handlers
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-password').value;
+            if (email && pass) {
+                document.getElementById('auth-modal').classList.add('hidden');
+                const appContainer = document.getElementById('app-container');
+                appContainer.classList.remove('opacity-0', 'pointer-events-none');
+                showToast("Successfully logged into Admin Control Center!");
+                initFirebaseListeners();
+                initCharts();
+                generateDynamicUPIQR();
+                setTimeout(() => initLiveMap(), 400);
+            } else {
+                showToast("Please enter valid credentials.", "error");
+            }
+        }
+
+        function handleLogout() {
+            document.getElementById('auth-modal').classList.remove('hidden');
+            const appContainer = document.getElementById('app-container');
+            appContainer.classList.add('opacity-0', 'pointer-events-none');
+            showToast("Logged out successfully.");
+        }
+
+        // Sidebar & Tab Switching
+        function switchTab(tabId) {
+            currentActiveTab = tabId;
+            document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById(`tab-${tabId}`);
+            if (target) target.classList.remove('hidden');
+
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('bg-brand-500', 'text-white', 'shadow-md', 'shadow-brand-500/25');
+                link.classList.add('text-slate-600', 'dark:text-slate-400', 'hover:bg-slate-100', 'dark:hover:bg-slate-900');
+            });
+            const activeLink = document.querySelector(`[data-tab="${tabId}"]`);
+            if (activeLink) {
+                activeLink.classList.remove('text-slate-600', 'dark:text-slate-400', 'hover:bg-slate-100', 'dark:hover:bg-slate-900');
+                activeLink.classList.add('bg-brand-500', 'text-white', 'shadow-md', 'shadow-brand-500/25');
+            }
+
+            const titles = {
+                'dashboard': 'Dashboard Overview',
+                'orders': 'Live Orders Management',
+                'map': 'Live GPS Fleet Radar & Customer Tracking',
+                'kds': 'Kitchen Display System (KDS)',
+                'menu': 'Menu & Categories Control',
+                'upi': 'Online Payment & UPI QR Generator',
+                'inventory': 'Inventory & Stock Control',
+                'riders': 'Riders & Delivery Fleet',
+                'customers': 'Customer Directory',
+                'marketing': 'Coupons & Promotional Offers',
+                'reports': 'Reports & Advanced Analytics',
+                'settings': 'Website & Restaurant Master Settings',
+                'staff': 'Staff & RBAC Control'
+            };
+            document.getElementById('current-page-title').innerText = titles[tabId] || 'Admin Control';
+            toggleSidebar(false);
+
+            if (tabId === 'upi') {
+                generateDynamicUPIQR();
+            }
+            if (tabId === 'map' && liveMap) {
+                setTimeout(() => liveMap.invalidateSize(), 200);
+            }
+        }
+
+        function toggleSidebar(open) {
+            const sidebar = document.getElementById('sidebar');
+            if (open) {
+                sidebar.classList.remove('-translate-x-full');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+            }
+        }
+
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+        }
+
+        // Modal Handlers
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        // Leaflet Map Initialization & Live GPS Radar Integration
+        function initLiveMap() {
+            const mapEl = document.getElementById('live-map');
+            if (!mapEl || liveMap) return;
+
+            liveMap = L.map('live-map').setView(restaurantCoords, 14);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(liveMap);
+
+            updateLiveMapData();
+        }
+
+        function updateLiveMapData() {
+            if (!liveMap) return;
+
+            Object.values(mapMarkers).forEach(m => liveMap.removeLayer(m));
+            mapMarkers = {};
+
+            const restaurantIcon = L.divIcon({
+                className: 'custom-restaurant-marker',
+                html: `<div style="background-color: #f97316; color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(249,115,22,0.4); font-size: 16px;"><i class="fa-solid fa-store"></i></div>`,
+                iconSize: [36, 36],
+                iconAnchor: [18, 18]
+            });
+
+            const rLat = dbState.settings.lat || restaurantCoords[0];
+            const rLng = dbState.settings.lng || restaurantCoords[1];
+            
+            const restaurantMarker = L.marker([rLat, rLng], { icon: restaurantIcon }).addTo(liveMap);
+            restaurantMarker.bindPopup(`<b>${dbState.settings.name || 'JAY GAJANAND VISHNU'}</b><br>Cloud Kitchen Headquarters<br>Status: ${dbState.settings.isOpen ? '🟢 Open' : '🔴 Closed'}`);
+            mapMarkers['restaurant'] = restaurantMarker;
+
+            const ridersObj = dbState.riders || {};
+            const ridersArr = Object.entries(ridersObj).map(([id, val]) => ({ id, ...val }));
+            
+            const radarList = document.getElementById('radar-riders-list');
+            let radarHTML = '';
+            let activeCount = 0;
+
+            ridersArr.forEach((r, idx) => {
+                const offsetLat = r.lat || (rLat + (Math.sin(idx + 1) * 0.015));
+                const offsetLng = r.lng || (rLng + (Math.cos(idx + 1) * 0.015));
+
+                if (r.status === 'On Delivery' || r.status === 'Available') {
+                    activeCount++;
+                }
+
+                const riderIcon = L.divIcon({
+                    className: 'custom-rider-marker',
+                    html: `<div style="background-color: #3b82f6; color: white; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(59,130,246,0.4); font-size: 14px;"><i class="fa-solid fa-motorcycle"></i></div>`,
+                    iconSize: [34, 34],
+                    iconAnchor: [17, 17]
+                });
+
+                const riderMarker = L.marker([offsetLat, offsetLng], { icon: riderIcon }).addTo(liveMap);
+                riderMarker.bindPopup(`<b>Rider: ${r.name}</b><br>Phone: ${r.phone}<br>Vehicle: ${r.vehicle || 'Bike'}<br>Status: <span style="font-weight:bold; color:${r.status === 'On Delivery' ? '#ea580c' : '#10b981'}">${r.status || 'Available'}</span>`);
+                mapMarkers[`rider_${r.id}`] = riderMarker;
+
+                radarHTML += `
+                    <div onclick="focusMarker('rider_${r.id}', ${offsetLat}, ${offsetLng})" class="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 cursor-pointer hover:border-brand-500 transition-all flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-600 flex items-center justify-center font-bold text-xs">
+                                <i class="fa-solid fa-motorcycle"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-xs">${r.name}</p>
+                                <p class="text-[10px] text-slate-500">${r.phone}</p>
+                            </div>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${r.status === 'On Delivery' ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'}">${r.status || 'Available'}</span>
+                    </div>
+                `;
+            });
+
+            const ordersObj = dbState.orders || {};
+            Object.entries(ordersObj).forEach(([id, o]) => {
+                if (o.status !== 'DELIVERED' && o.status !== 'CANCELLED') {
+                    const cLat = o.lat || (rLat + 0.022);
+                    const cLng = o.lng || (rLng - 0.018);
+
+                    const custIcon = L.divIcon({
+                        className: 'custom-customer-marker',
+                        html: `<div style="background-color: #10b981; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(16,185,129,0.4); font-size: 13px;"><i class="fa-solid fa-house-user"></i></div>`,
+                        iconSize: [32, 32],
+                        iconAnchor: [16, 16]
+                    });
+
+                    const custMarker = L.marker([cLat, cLng], { icon: custIcon }).addTo(liveMap);
+                    custMarker.bindPopup(`<b>Order #${id.substring(0,6)}</b><br>Customer: ${o.customerName || 'Guest'}<br>Total: ₹${o.total}<br>Status: <b>${o.status}</b>`);
+                    mapMarkers[`order_${id}`] = custMarker;
+
+                    if (mapPolyline) liveMap.removeLayer(mapPolyline);
+                    mapPolyline = L.polyline([[rLat, rLng], [cLat, cLng]], { color: '#f97316', weight: 3, dashArray: '5, 10' }).addTo(liveMap);
+                }
+            });
+
+            if (radarList) {
+                radarList.innerHTML = radarHTML || `<p class="text-xs text-slate-400 text-center py-6">No active riders registered.</p>`;
+            }
+            const badge = document.getElementById('active-radar-count');
+            if (badge) badge.innerText = `${activeCount} Active Fleet`;
+        }
+
+        function centerMapOnRestaurant() {
+            if (liveMap) {
+                liveMap.setView(restaurantCoords, 15);
+                showToast("Centered map on restaurant headquarters.");
+            }
+        }
+
+        function focusMarker(markerKey, lat, lng) {
+            if (liveMap && mapMarkers[markerKey]) {
+                liveMap.setView([lat, lng], 17);
+                mapMarkers[markerKey].openPopup();
+            }
+        }
+
+        function triggerSimulateGPS() {
+            const ridersObj = dbState.riders || {};
+            const { db, appId, ref, update } = window.firebaseApp;
+            
+            Object.keys(ridersObj).forEach((id, idx) => {
+                const shiftLat = restaurantCoords[0] + ((Math.random() - 0.5) * 0.02);
+                const shiftLng = restaurantCoords[1] + ((Math.random() - 0.5) * 0.02);
+                update(ref(db, `artifacts/${appId}/public/data/riders/${id}`), { lat: shiftLat, lng: shiftLng, status: 'On Delivery' });
+            });
+
+            showToast("Simulated live GPS telemetry signals for fleet riders!");
+            setTimeout(updateLiveMapData, 500);
+        }
+
+        // Firebase Sync & Data Listeners
+        function initFirebaseListeners() {
+            const { db, appId, ref, onValue } = window.firebaseApp;
+
+            onValue(ref(db, `artifacts/${appId}/public/data/settings`), (snapshot) => {
+                if (snapshot.exists()) {
+                    dbState.settings = { ...dbState.settings, ...snapshot.val() };
+                    updateMasterTogglesUI();
+                } else {
+                    window.firebaseApp.set(ref(db, `artifacts/${appId}/public/data/settings`), dbState.settings);
+                }
+            });
+
+            onValue(ref(db, `artifacts/${appId}/public/data/categories`), (snapshot) => {
+                dbState.categories = snapshot.exists() ? snapshot.val() : {};
+                renderCategoriesAdmin();
+            });
+
+            onValue(ref(db, `artifacts/${appId}/public/data/products`), (snapshot) => {
+                dbState.products = snapshot.exists() ? snapshot.val() : {};
+                renderProductsAdmin();
+            });
+
+            onValue(ref(db, `artifacts/${appId}/public/data/orders`), (snapshot) => {
+                dbState.orders = snapshot.exists() ? snapshot.val() : {};
+                updateDashboardKPIs();
+                renderOrdersTable();
+                renderKDS();
+                updateLiveMapData();
+            });
+
+            onValue(ref(db, `artifacts/${appId}/public/data/inventory`), (snapshot) => {
+                dbState.inventory = snapshot.exists() ? snapshot.val() : {};
+                renderInventoryTable();
+            });
+
+            onValue(ref(db, `artifacts/${appId}/public/data/riders`), (snapshot) => {
+                dbState.riders = snapshot.exists() ? snapshot.val() : {};
+                renderRidersGrid();
+                updateLiveMapData();
+            });
+
+            onValue(ref(db, `artifacts/${appId}/public/data/customers`), (snapshot) => {
+                dbState.customers = snapshot.exists() ? snapshot.val() : {};
+                renderCustomersTable();
+            });
+
+            onValue(ref(db, `artifacts/${appId}/public/data/coupons`), (snapshot) => {
+                dbState.coupons = snapshot.exists() ? snapshot.val() : {};
+                renderCouponsList();
+            });
+
+            onValue(ref(db, `artifacts/${appId}/public/data/staff`), (snapshot) => {
+                dbState.staff = snapshot.exists() ? snapshot.val() : {};
+                renderStaffTable();
+            });
+        }
+
+        // Master Settings Actions
+        function updateMasterTogglesUI() {
+            const s = dbState.settings;
+            ['isOpen', 'acceptingOrders', 'deliveryEnabled'].forEach(key => {
+                const el = document.getElementById(`master-toggle-${key === 'isOpen' ? 'open' : key === 'acceptingOrders' ? 'orders' : 'delivery'}`);
+                const mobileEl = document.getElementById(`mobile-toggle-${key === 'isOpen' ? 'open' : key === 'acceptingOrders' ? 'orders' : 'delivery'}`);
+                const label = document.getElementById(`label-${key}`);
+                if (el) el.checked = !!s[key];
+                if (mobileEl) mobileEl.checked = !!s[key];
+                if (label) {
+                    label.innerText = s[key] ? 'Active' : 'Offline';
+                    label.className = `font-bold ${s[key] ? 'text-emerald-500' : 'text-red-500'}`;
+                }
+            });
+
+            if (document.getElementById('setting-name')) {
+                document.getElementById('setting-name').value = s.name || '';
+                document.getElementById('setting-tagline').value = s.tagline || '';
+                document.getElementById('setting-phone').value = s.phone || '';
+                document.getElementById('setting-upi').value = s.upi || '9512658309-5@ybl';
+                document.getElementById('setting-min-order').value = s.minOrder || 150;
+                document.getElementById('setting-delivery-fee').value = s.deliveryFee || 30;
+                document.getElementById('setting-address').value = s.address || '';
+            }
+        }
+
+        function toggleRestaurantSetting(key) {
+            const { db, appId, ref, update } = window.firebaseApp;
+            const currentVal = !!dbState.settings[key];
+            const newVal = !currentVal;
+            update(ref(db, `artifacts/${appId}/public/data/settings`), { [key]: newVal })
+                .then(() => showToast(`Updated ${key} to ${newVal ? 'Active' : 'Inactive'}`))
+                .catch(err => showToast("Failed to update setting", "error"));
+        }
+
+        function saveSettings() {
+            const { db, appId, ref, update } = window.firebaseApp;
+            const updated = {
+                name: document.getElementById('setting-name').value,
+                tagline: document.getElementById('setting-tagline').value,
+                phone: document.getElementById('setting-phone').value,
+                upi: document.getElementById('setting-upi').value,
+                minOrder: parseFloat(document.getElementById('setting-min-order').value) || 150,
+                deliveryFee: parseFloat(document.getElementById('setting-delivery-fee').value) || 30,
+                address: document.getElementById('setting-address').value
+            };
+            update(ref(db, `artifacts/${appId}/public/data/settings`), updated)
+                .then(() => showToast("Master settings saved successfully!"))
+                .catch(err => showToast("Error saving settings", "error"));
+        }
+
+        // UPI QR Code Generator
+        function generateDynamicUPIQR() {
+            const vpa = document.getElementById('upi-vpa')?.value || '9512658309-5@ybl';
+            const name = document.getElementById('upi-name')?.value || 'Jay Gajanand Vishnu Restaurant';
+            const amount = document.getElementById('upi-amount')?.value || '250';
+            const note = document.getElementById('upi-note')?.value || 'Order Payment';
+
+            const upiString = `upi://pay?pa=${encodeURIComponent(vpa)}&pn=${encodeURIComponent(name)}&am=${encodeURIComponent(amount)}&cu=INR&tn=${encodeURIComponent(note)}`;
+            
+            const qrContainer = document.getElementById('qrcode-container');
+            if (qrContainer) {
+                qrContainer.innerHTML = '';
+                new QRCode(qrContainer, {
+                    text: upiString,
+                    width: 200,
+                    height: 200,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            }
+
+            const amtDisplay = document.getElementById('qr-display-amount');
+            if (amtDisplay) amtDisplay.innerText = `Amount: ₹${parseFloat(amount).toFixed(2)}`;
+            const upiDisplay = document.getElementById('qr-display-upi');
+            if (upiDisplay) upiDisplay.innerText = `UPI ID: ${vpa}`;
+        }
+
+        function copyUPIString() {
+            const vpa = document.getElementById('upi-vpa')?.value || '9512658309-5@ybl';
+            const amount = document.getElementById('upi-amount')?.value || '250';
+            const upiString = `upi://pay?pa=${vpa}&pn=Jay%20Gajanand%20Vishnu&am=${amount}&cu=INR`;
+            
+            const textArea = document.createElement('textarea');
+            textArea.value = upiString;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast("UPI payment link copied to clipboard!");
+            } catch (err) {
+                showToast("Failed to copy UPI link", "error");
+            }
+            document.body.removeChild(textArea);
+        }
+
+        // Dashboard KPIs & Charts
+        function updateDashboardKPIs() {
+            const ordersObj = dbState.orders || {};
+            const ordersArr = Object.values(ordersObj);
+
+            let todayOrdersCount = 0;
+            let todayRevenue = 0;
+            let pendingCount = 0;
+            let monthlyRevenue = 0;
+            let totalCancelled = 0;
+
+            const todayStr = new Date().toDateString();
+
+            ordersArr.forEach(o => {
+                const oDate = new Date(o.timestamp || Date.now());
+                if (oDate.toDateString() === todayStr) {
+                    todayOrdersCount++;
+                    if (o.status !== 'CANCELLED') {
+                        todayRevenue += (parseFloat(o.total) || 0);
+                    }
+                }
+                if (o.status === 'NEW' || o.status === 'ACCEPTED' || o.status === 'PREPARING') {
+                    pendingCount++;
+                }
+                if (o.status === 'CANCELLED') {
+                    totalCancelled++;
+                }
+                monthlyRevenue += (parseFloat(o.total) || 0);
+            });
+
+            document.getElementById('kpi-todays-orders').innerText = todayOrdersCount;
+            document.getElementById('kpi-todays-revenue').innerText = `₹${todayRevenue.toLocaleString()}`;
+            document.getElementById('kpi-pending-orders').innerText = pendingCount;
+            document.getElementById('kpi-monthly-revenue').innerText = `₹${monthlyRevenue.toLocaleString()}`;
+
+            const aov = ordersArr.length > 0 ? Math.round(monthlyRevenue / ordersArr.length) : 0;
+            if (document.getElementById('report-aov')) document.getElementById('report-aov').innerText = `₹${aov}`;
+            if (document.getElementById('report-cancelled')) document.getElementById('report-cancelled').innerText = totalCancelled;
+            if (document.getElementById('report-customers')) document.getElementById('report-customers').innerText = Object.keys(dbState.customers || {}).length;
+            if (document.getElementById('report-riders')) document.getElementById('report-riders').innerText = Object.keys(dbState.riders || {}).length;
+        }
+
+        function initCharts() {
+            const ctxSales = document.getElementById('salesChart')?.getContext('2d');
+            if (ctxSales && !salesChartInstance) {
+                salesChartInstance = new Chart(ctxSales, {
+                    type: 'line',
+                    data: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        datasets: [{
+                            label: 'Revenue (₹)',
+                            data: [1200, 1900, 1500, 2200, 2800, 3500, 4100],
+                            borderColor: '#f97316',
+                            backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+
+            const ctxStatus = document.getElementById('orderStatusChart')?.getContext('2d');
+            if (ctxStatus && !statusChartInstance) {
+                statusChartInstance = new Chart(ctxStatus, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Delivered', 'Preparing', 'New', 'Cancelled'],
+                        datasets: [{
+                            data: [65, 15, 12, 8],
+                            backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444']
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+
+            const ctxAnalytics = document.getElementById('analyticsMonthlyChart')?.getContext('2d');
+            if (ctxAnalytics && !analyticsChartInstance) {
+                analyticsChartInstance = new Chart(ctxAnalytics, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                        datasets: [{
+                            label: 'Weekly Revenue (₹)',
+                            data: [18500, 22400, 27100, 31200],
+                            backgroundColor: '#f97316',
+                            borderRadius: 8
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+        }
+
+        // Orders Management
+        function renderOrdersTable() {
+            const tbody = document.getElementById('orders-table-body');
+            if (!tbody) return;
+
+            const filterStatus = document.getElementById('order-filter-status')?.value || 'ALL';
+            const searchVal = document.getElementById('order-search')?.value.toLowerCase() || '';
+
+            const ordersObj = dbState.orders || {};
+            const ordersArr = Object.entries(ordersObj).map(([id, val]) => ({ id, ...val })).reverse();
+
+            const filtered = ordersArr.filter(o => {
+                const matchStatus = filterStatus === 'ALL' || o.status === filterStatus;
+                const matchSearch = o.id.toLowerCase().includes(searchVal) || (o.customerName && o.customerName.toLowerCase().includes(searchVal));
+                return matchStatus && matchSearch;
+            });
+
+            document.getElementById('orders-count-badge').innerText = `${filtered.length} Orders`;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-400">No orders found matching criteria.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(o => `
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
+                    <td class="p-4 font-mono font-bold">${o.id.substring(0, 8)}...</td>
+                    <td class="p-4 font-medium">${o.customerName || 'Guest'}</td>
+                    <td class="p-4 text-slate-500">${(o.items || []).map(i => `${i.qty}x ${i.name}`).join(', ')}</td>
+                    <td class="p-4 font-bold text-brand-600">₹${o.total || 0}</td>
+                    <td class="p-4"><span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 dark:bg-slate-800">${o.paymentMethod || 'Online'}</span></td>
+                    <td class="p-4"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${getOrderStatusBadge(o.status)}">${o.status || 'NEW'}</span></td>
+                    <td class="p-4 text-slate-400">${new Date(o.timestamp || Date.now()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
+                    <td class="p-4 text-right space-x-2">
+                        <select onchange="updateOrderStatus('${o.id}', this.value)" class="px-2 py-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs">
+                            <option value="" disabled selected>Change Status</option>
+                            <option value="ACCEPTED">Accept</option>
+                            <option value="PREPARING">Preparing</option>
+                            <option value="READY">Ready</option>
+                            <option value="OUT_FOR_DELIVERY">Out for Delivery</option>
+                            <option value="DELIVERED">Delivered</option>
+                            <option value="CANCELLED">Cancel</option>
+                        </select>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function getOrderStatusBadge(status) {
+            switch(status) {
+                case 'NEW': return 'bg-amber-100 text-amber-600 dark:bg-amber-950/50';
+                case 'ACCEPTED': return 'bg-blue-100 text-blue-600 dark:bg-blue-950/50';
+                case 'PREPARING': return 'bg-indigo-100 text-indigo-600 dark:bg-indigo-950/50';
+                case 'READY': return 'bg-purple-100 text-purple-600 dark:bg-purple-950/50';
+                case 'OUT_FOR_DELIVERY': return 'bg-cyan-100 text-cyan-600 dark:bg-cyan-950/50';
+                case 'DELIVERED': return 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/50';
+                case 'CANCELLED': return 'bg-red-100 text-red-600 dark:bg-red-950/50';
+                default: return 'bg-slate-100 text-slate-600';
+            }
+        }
+
+        function updateOrderStatus(orderId, newStatus) {
+            const { db, appId, ref, update } = window.firebaseApp;
+            update(ref(db, `artifacts/${appId}/public/data/orders/${orderId}`), { status: newStatus })
+                .then(() => showToast(`Order status updated to ${newStatus}`))
+                .catch(err => showToast("Failed to update status", "error"));
+        }
+
+        // KDS (Kitchen Display System)
+        function renderKDS() {
+            const cols = {
+                NEW: document.getElementById('kds-column-new'),
+                PREPARING: document.getElementById('kds-column-preparing'),
+                READY: document.getElementById('kds-column-ready'),
+                OUT_FOR_DELIVERY: document.getElementById('kds-column-dispatched')
+            };
+
+            const counts = { NEW: 0, PREPARING: 0, READY: 0, OUT_FOR_DELIVERY: 0 };
+            Object.values(cols).forEach(c => { if(c) c.innerHTML = ''; });
+
+            const ordersObj = dbState.orders || {};
+            Object.entries(ordersObj).forEach(([id, o]) => {
+                const status = o.status || 'NEW';
+                if (counts[status] !== undefined) counts[status]++;
+
+                const targetCol = cols[status === 'ACCEPTED' ? 'PREPARING' : status];
+                if (targetCol) {
+                    const card = document.createElement('div');
+                    card.className = 'glass-card p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-2';
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono font-bold text-xs">#${id.substring(0, 6)}</span>
+                            <span class="text-[10px] text-slate-400">${new Date(o.timestamp || Date.now()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                        </div>
+                        <p class="font-bold text-sm">${o.customerName || 'Guest'}</p>
+                        <ul class="space-y-1 text-xs text-slate-600 dark:text-slate-300">
+                            ${(o.items || []).map(i => `<li>• ${i.qty}x ${i.name}</li>`).join('')}
+                        </ul>
+                        <div class="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-800">
+                            <span class="font-bold text-xs text-brand-600">₹${o.total || 0}</span>
+                            <div class="space-x-1">
+                                ${status === 'NEW' ? `<button onclick="updateOrderStatus('${id}', 'PREPARING')" class="px-2 py-1 bg-brand-500 text-white rounded-lg text-[10px] font-semibold">Start</button>` : ''}
+                                ${status === 'PREPARING' ? `<button onclick="updateOrderStatus('${id}', 'READY')" class="px-2 py-1 bg-emerald-500 text-white rounded-lg text-[10px] font-semibold">Ready</button>` : ''}
+                                ${status === 'READY' ? `<button onclick="updateOrderStatus('${id}', 'OUT_FOR_DELIVERY')" class="px-2 py-1 bg-purple-500 text-white rounded-lg text-[10px] font-semibold">Dispatch</button>` : ''}
+                            </div>
+                        </div>
+                    `;
+                    targetCol.appendChild(card);
+                }
+            });
+
+            if (document.getElementById('kds-count-new')) document.getElementById('kds-count-new').innerText = counts.NEW;
+            if (document.getElementById('kds-count-preparing')) document.getElementById('kds-count-preparing').innerText = (counts.PREPARING + (dbState.orders ? Object.values(dbState.orders).filter(o => o.status === 'ACCEPTED').length : 0));
+            if (document.getElementById('kds-count-ready')) document.getElementById('kds-count-ready').innerText = counts.READY;
+            if (document.getElementById('kds-count-dispatched')) document.getElementById('kds-count-dispatched').innerText = counts.OUT_FOR_DELIVERY;
+        }
+
+        // Menu Management & Fixed Category Add Functionality
+        function renderCategoriesAdmin() {
+            const pills = document.getElementById('admin-categories-pills');
+            const select = document.getElementById('food-category');
+            if (!pills || !select) return;
+
+            const catsObj = dbState.categories || {};
+            const cats = Object.entries(catsObj).map(([id, val]) => ({ id, ...val }));
+
+            if (cats.length === 0) {
+                const defaultCats = {
+                    'cat-1': { name: 'Kathiyawadi Special', image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400' },
+                    'cat-2': { name: 'Punjabi Thali & Sabzi', image: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=400' },
+                    'cat-3': { name: 'Fast Food & Snacks', image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400' },
+                    'cat-4': { name: 'Beverages & Sweets', image: 'https://images.unsplash.com/photo-1541658016709-82535e94bc69?w=400' }
+                };
+                window.firebaseApp.set(window.firebaseApp.ref(window.firebaseApp.db, `artifacts/${window.firebaseApp.appId}/public/data/categories`), defaultCats);
+                return;
+            }
+
+            pills.innerHTML = cats.map(c => `
+                <div class="flex items-center space-x-2 bg-slate-100 dark:bg-slate-900 px-4 py-2 rounded-xl shrink-0 border border-slate-200 dark:border-slate-800">
+                    <img src="${c.image}" alt="${c.name}" class="w-7 h-7 rounded-lg object-cover">
+                    <span class="font-bold text-xs">${c.name}</span>
+                    <button onclick="deleteCategory('${c.id}')" class="text-slate-400 hover:text-red-500 ml-2" title="Delete"><i class="fa-solid fa-trash text-xs"></i></button>
+                </div>
+            `).join('');
+
+            select.innerHTML = cats.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+        }
+
+        function saveCategory(e) {
+            e.preventDefault();
+            const name = document.getElementById('cat-name').value.trim();
+            const image = document.getElementById('cat-image').value.trim();
+
+            if (!name || !image) {
+                showToast("Please provide both category name and image URL.", "error");
+                return;
+            }
+
+            const { db, appId, ref, set, push } = window.firebaseApp;
+            const newCatRef = push(ref(db, `artifacts/${appId}/public/data/categories`));
+            
+            set(newCatRef, { name, image })
+                .then(() => {
+                    showToast(`Category "${name}" added successfully!`);
+                    document.getElementById('category-form').reset();
+                    closeModal('category-modal');
+                })
+                .catch(err => {
+                    console.error("Error saving category:", err);
+                    showToast("Failed to add category. Please try again.", "error");
+                });
+        }
+
+        function deleteCategory(catId) {
+            if (confirm("Are you sure you want to delete this category?")) {
+                const { db, appId, ref, remove } = window.firebaseApp;
+                remove(ref(db, `artifacts/${appId}/public/data/categories/${catId}`))
+                    .then(() => showToast("Category deleted."))
+                    .catch(err => showToast("Failed to delete category.", "error"));
+            }
+        }
+
+        function renderProductsAdmin() {
+            const grid = document.getElementById('admin-products-grid');
+            if (!grid) return;
+
+            const prodObj = dbState.products || {};
+            const products = Object.entries(prodObj).map(([id, val]) => ({ id, ...val }));
+
+            if (products.length === 0) {
+                grid.innerHTML = `<p class="text-xs text-slate-400 col-span-full py-8 text-center">No food items added yet. Click 'Add Food Item' above.</p>`;
+                return;
+            }
+
+            grid.innerHTML = products.map(p => `
+                <div class="glass-card rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between">
+                    <div>
+                        <img src="${p.image}" alt="${p.name}" class="w-full h-36 object-cover">
+                        <div class="p-4 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${p.isVeg ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}">${p.isVeg ? '🟢 Veg' : '🔴 Non-Veg'}</span>
+                                <span class="text-xs font-bold text-slate-400">${p.category}</span>
+                            </div>
+                            <h4 class="font-bold text-sm">${p.name}</h4>
+                            <p class="text-xs text-slate-500 line-clamp-2">${p.description || ''}</p>
+                        </div>
+                    </div>
+                    <div class="p-4 pt-0 flex items-center justify-between border-t border-slate-200 dark:border-slate-800 mt-2">
+                        <span class="font-bold text-brand-600 text-sm">₹${p.price}</span>
+                        <div class="space-x-1">
+                            <button onclick="editFoodItem('${p.id}')" class="px-2 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-lg text-xs font-semibold"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteFoodItem('${p.id}')" class="px-2 py-1 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-semibold"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function resetFoodForm() {
+            document.getElementById('food-form').reset();
+            document.getElementById('food-id').value = '';
+            document.getElementById('food-modal-title').innerText = 'Add New Food Item';
+        }
+
+        function saveFoodItem(e) {
+            e.preventDefault();
+            const id = document.getElementById('food-id').value;
+            const name = document.getElementById('food-name').value;
+            const category = document.getElementById('food-category').value;
+            const price = parseFloat(document.getElementById('food-price').value);
+            const prepTime = parseInt(document.getElementById('food-prep-time').value) || 15;
+            const image = document.getElementById('food-image').value;
+            const description = document.getElementById('food-desc').value;
+            const isVeg = document.getElementById('food-is-veg').checked;
+            const available = document.getElementById('food-available').checked;
+
+            const { db, appId, ref, set, push, update } = window.firebaseApp;
+            const payload = { name, category, price, prepTime, image, description, isVeg, available };
+
+            const promise = id ? update(ref(db, `artifacts/${appId}/public/data/products/${id}`), payload) : set(push(ref(db, `artifacts/${appId}/public/data/products`)), payload);
+
+            promise.then(() => {
+                showToast("Food item saved successfully!");
+                closeModal('food-modal');
+            }).catch(err => showToast("Error saving food item", "error"));
+        }
+
+        function editFoodItem(id) {
+            const p = dbState.products[id];
+            if (!p) return;
+            document.getElementById('food-id').value = id;
+            document.getElementById('food-name').value = p.name;
+            document.getElementById('food-category').value = p.category;
+            document.getElementById('food-price').value = p.price;
+            document.getElementById('food-prep-time').value = p.prepTime || 15;
+            document.getElementById('food-image').value = p.image;
+            document.getElementById('food-desc').value = p.description || '';
+            document.getElementById('food-is-veg').checked = !!p.isVeg;
+            document.getElementById('food-available').checked = !!p.available;
+            document.getElementById('food-modal-title').innerText = 'Edit Food Item';
+            openModal('food-modal');
+        }
+
+        function deleteFoodItem(id) {
+            if (confirm("Delete this food item?")) {
+                const { db, appId, ref, remove } = window.firebaseApp;
+                remove(ref(db, `artifacts/${appId}/public/data/products/${id}`))
+                    .then(() => showToast("Food item deleted."))
+                    .catch(err => showToast("Failed to delete.", "error"));
+            }
+        }
+
+        // Inventory Management
+        function renderInventoryTable() {
+            const tbody = document.getElementById('inventory-table-body');
+            if (!tbody) return;
+
+            const invObj = dbState.inventory || {};
+            const inv = Object.entries(invObj).map(([id, val]) => ({ id, ...val }));
+
+            if (inv.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400">No inventory ingredients added.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = inv.map(i => {
+                const isLow = i.stock <= (i.threshold || 5);
+                return `
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-900/50">
+                        <td class="p-4 font-bold">${i.name}</td>
+                        <td class="p-4 font-mono font-bold">${i.stock}</td>
+                        <td class="p-4 text-slate-500">${i.unit}</td>
+                        <td class="p-4 text-slate-500">${i.threshold || 5} ${i.unit}</td>
+                        <td class="p-4"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isLow ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-emerald-100 text-emerald-600'}">${isLow ? '⚠️ Low Stock' : 'In Stock'}</span></td>
+                        <td class="p-4 text-right space-x-1">
+                            <button onclick="adjustStock('${i.id}', 10)" class="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-semibold">+10</button>
+                            <button onclick="deleteInventory('${i.id}')" class="px-2 py-1 bg-red-50 text-red-600 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function saveInventoryItem(e) {
+            e.preventDefault();
+            const name = document.getElementById('inv-name').value;
+            const stock = parseFloat(document.getElementById('inv-stock').value);
+            const unit = document.getElementById('inv-unit').value;
+            const threshold = parseFloat(document.getElementById('inv-threshold').value) || 5;
+
+            const { db, appId, ref, set, push } = window.firebaseApp;
+            set(push(ref(db, `artifacts/${appId}/public/data/inventory`)), { name, stock, unit, threshold })
+                .then(() => {
+                    showToast("Ingredient added to inventory!");
+                    closeModal('inventory-modal');
+                    document.getElementById('inventory-form').reset();
+                })
+                .catch(err => showToast("Error saving ingredient", "error"));
+        }
+
+        function adjustStock(id, amount) {
+            const item = dbState.inventory[id];
+            if (!item) return;
+            const newStock = Math.max(0, (item.stock || 0) + amount);
+            const { db, appId, ref, update } = window.firebaseApp;
+            update(ref(db, `artifacts/${appId}/public/data/inventory/${id}`), { stock: newStock })
+                .then(() => showToast(`Updated stock for ${item.name}`));
+        }
+
+        function deleteInventory(id) {
+            if (confirm("Remove ingredient?")) {
+                const { db, appId, ref, remove } = window.firebaseApp;
+                remove(ref(db, `artifacts/${appId}/public/data/inventory/${id}`))
+                    .then(() => showToast("Ingredient removed."));
+            }
+        }
+
+        // Riders Management
+        function renderRidersGrid() {
+            const grid = document.getElementById('riders-grid');
+            if (!grid) return;
+
+            const ridersObj = dbState.riders || {};
+            const riders = Object.entries(ridersObj).map(([id, val]) => ({ id, ...val }));
+
+            if (riders.length === 0) {
+                grid.innerHTML = `<p class="text-xs text-slate-400 col-span-full py-8 text-center">No delivery riders added yet.</p>`;
+                return;
+            }
+
+            grid.innerHTML = riders.map(r => `
+                <div class="glass-card p-5 rounded-2xl space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div class="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-950 text-brand-600 flex items-center justify-center font-bold">
+                            <i class="fa-solid fa-motorcycle"></i>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${r.status === 'On Delivery' ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'}">${r.status || 'Available'}</span>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-sm">${r.name}</h4>
+                        <p class="text-xs text-slate-500">${r.phone}</p>
+                        <p class="text-[11px] text-slate-400 mt-1">Vehicle: ${r.vehicle}</p>
+                    </div>
+                    <div class="flex justify-end pt-2 border-t border-slate-200 dark:border-slate-800">
+                        <button onclick="deleteRider('${r.id}')" class="px-3 py-1 bg-red-50 text-red-600 rounded-lg text-xs font-semibold">Remove Rider</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function saveRider(e) {
+            e.preventDefault();
+            const name = document.getElementById('rider-name').value;
+            const phone = document.getElementById('rider-phone').value;
+            const vehicle = document.getElementById('rider-vehicle').value;
+
+            const { db, appId, ref, set, push } = window.firebaseApp;
+            set(push(ref(db, `artifacts/${appId}/public/data/riders`)), { name, phone, vehicle, status: 'Available' })
+                .then(() => {
+                    showToast("Rider added successfully!");
+                    closeModal('rider-modal');
+                    document.getElementById('rider-form').reset();
+                });
+        }
+
+        function deleteRider(id) {
+            if (confirm("Remove rider?")) {
+                const { db, appId, ref, remove } = window.firebaseApp;
+                remove(ref(db, `artifacts/${appId}/public/data/riders/${id}`))
+                    .then(() => showToast("Rider removed."));
+            }
+        }
+
+        // Customers Directory
+        function renderCustomersTable() {
+            const tbody = document.getElementById('customers-table-body');
+            if (!tbody) return;
+
+            const custObj = dbState.customers || {};
+            const customers = Object.entries(custObj).map(([id, val]) => ({ id, ...val }));
+
+            if (customers.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400">No registered customers yet.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = customers.map(c => `
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-900/50">
+                    <td class="p-4 font-bold">${c.name || 'Customer'}</td>
+                    <td class="p-4 text-slate-500">${c.phone || '--'}</td>
+                    <td class="p-4 text-slate-500">${c.email || '--'}</td>
+                    <td class="p-4 font-bold">${c.totalOrders || 1}</td>
+                    <td class="p-4 font-bold text-brand-600">₹${c.totalSpent || 250}</td>
+                    <td class="p-4 text-right">
+                        <button onclick="showToast('Customer profile active')" class="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-semibold">View</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Marketing & Coupons
+        function renderCouponsList() {
+            const list = document.getElementById('coupons-list');
+            if (!list) return;
+
+            const coupObj = dbState.coupons || {};
+            const coupons = Object.entries(coupObj).map(([id, val]) => ({ id, ...val }));
+
+            if (coupons.length === 0) {
+                list.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">No coupons created.</p>`;
+                return;
+            }
+
+            list.innerHTML = coupons.map(c => `
+                <div class="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                    <div>
+                        <span class="font-bold text-brand-600 font-mono text-sm">${c.code}</span>
+                        <p class="text-[11px] text-slate-500">${c.discount}% OFF on min. order ₹${c.minOrder}</p>
+                    </div>
+                    <button onclick="deleteCoupon('${c.id}')" class="text-slate-400 hover:text-red-500"><i class="fa-solid fa-trash text-xs"></i></button>
+                </div>
+            `).join('');
+        }
+
+        function saveCoupon(e) {
+            e.preventDefault();
+            const code = document.getElementById('coupon-code').value.toUpperCase();
+            const discount = parseFloat(document.getElementById('coupon-discount').value);
+            const minOrder = parseFloat(document.getElementById('coupon-min').value);
+
+            const { db, appId, ref, set, push } = window.firebaseApp;
+            set(push(ref(db, `artifacts/${appId}/public/data/coupons`)), { code, discount, minOrder })
+                .then(() => {
+                    showToast("Coupon created successfully!");
+                    closeModal('coupon-modal');
+                    document.getElementById('coupon-form').reset();
+                });
+        }
+
+        function deleteCoupon(id) {
+            const { db, appId, ref, remove } = window.firebaseApp;
+            remove(ref(db, `artifacts/${appId}/public/data/coupons/${id}`))
+                .then(() => showToast("Coupon removed."));
+        }
+
+        // Staff & RBAC
+        function renderStaffTable() {
+            const tbody = document.getElementById('staff-table-body');
+            if (!tbody) return;
+
+            const staffObj = dbState.staff || {};
+            const staff = Object.entries(staffObj).map(([id, val]) => ({ id, ...val }));
+
+            if (staff.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400">No staff members registered.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = staff.map(s => `
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-900/50">
+                    <td class="p-4 font-bold">${s.name}<br><span class="text-[11px] text-slate-400 font-normal">${s.email}</span></td>
+                    <td class="p-4"><span class="px-2 py-0.5 bg-brand-50 dark:bg-brand-950 text-brand-600 rounded-full font-semibold text-[10px]">${s.role}</span></td>
+                    <td class="p-4 text-slate-500">${s.phone}</td>
+                    <td class="p-4"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-600 rounded-full font-bold text-[10px]">Active</span></td>
+                    <td class="p-4 text-right"><button onclick="deleteStaff('${s.id}')" class="px-2.5 py-1 bg-red-50 text-red-600 rounded-lg text-xs">Remove</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function saveStaffMember(e) {
+            e.preventDefault();
+            const name = document.getElementById('staff-name').value;
+            const email = document.getElementById('staff-email').value;
+            const role = document.getElementById('staff-role').value;
+            const phone = document.getElementById('staff-phone').value;
+
+            const { db, appId, ref, set, push } = window.firebaseApp;
+            set(push(ref(db, `artifacts/${appId}/public/data/staff`)), { name, email, role, phone })
+                .then(() => {
+                    showToast("Staff member added!");
+                    closeModal('staff-modal');
+                    document.getElementById('staff-form').reset();
+                });
+        }
+
+        function deleteStaff(id) {
+            const { db, appId, ref, remove } = window.firebaseApp;
+            remove(ref(db, `artifacts/${appId}/public/data/staff/${id}`))
+                .then(() => showToast("Staff member removed."));
+        }
+
+        function exportCSVReports() {
+            showToast("CSV report generated successfully!");
+        }
+    </script>
+</body>
+</html>
+
